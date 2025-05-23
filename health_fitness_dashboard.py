@@ -11,7 +11,6 @@ uploaded_file = st.file_uploader("Upload your formatted workout CSV", type=["csv
 if uploaded_file:
     df = pd.read_csv(uploaded_file, parse_dates=["start", "end"], dayfirst=False)
 
-    # ✅ Fix: parse and filter valid date values
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df[df["date"].notna()]
 
@@ -22,24 +21,54 @@ if uploaded_file:
     view_mode = st.sidebar.radio("Aggregate By", ["Day", "Week", "Month"])
 
     if len(date_range) == 2:
-        df = df[
-            (df["date"] >= pd.to_datetime(date_range[0])) &
-            (df["date"] <= pd.to_datetime(date_range[1]))
-        ]
+        df = df[(df["date"] >= pd.to_datetime(date_range[0])) & (df["date"] <= pd.to_datetime(date_range[1]))]
+
+    # Custom color mapping from PDF
+    color_map = {
+        "Pilates": "red",
+        "Yoga": "orange",
+        "Cycling": "black",
+        "Swimming": "blue",
+        "Tennis": "green"
+    }
 
     st.subheader("Workout Volume by Type")
     if view_mode == "Day":
         group = df.groupby(["date", "workout_type"]).size().reset_index(name="count")
-        chart = px.bar(group, x="date", y="count", color="workout_type", title="Daily Workout Volume")
+        chart1 = px.bar(group, x="date", y="count", color="workout_type",
+                        title="Daily Workout Volume", color_discrete_map=color_map)
+        chart1.update_layout(xaxis=dict(tickformat="%b %d", tickangle=45, rangeslider_visible=True))
     elif view_mode == "Week":
         df["week"] = df["date"] - pd.to_timedelta(df["date"].dt.weekday, unit='d')
         group = df.groupby(["week", "workout_type"]).size().reset_index(name="count")
-        chart = px.bar(group, x="week", y="count", color="workout_type", title="Weekly Workout Volume")
+        chart1 = px.bar(group, x="week", y="count", color="workout_type",
+                        title="Weekly Workout Volume", color_discrete_map=color_map)
     else:
         df["month"] = df["date"].dt.to_period("M").dt.to_timestamp()
         group = df.groupby(["month", "workout_type"]).size().reset_index(name="count")
-        chart = px.bar(group, x="month", y="count", color="workout_type", title="Monthly Workout Volume")
+        chart1 = px.bar(group, x="month", y="count", color="workout_type",
+                        title="Monthly Workout Volume", color_discrete_map=color_map)
 
-    st.plotly_chart(chart, use_container_width=True)
+    st.plotly_chart(chart1, use_container_width=True)
+
+    # Chart 2: Calories by Workout Type
+    st.subheader("Calories Burned by Workout Type")
+    if view_mode == "Day":
+        group2 = df.groupby(["date", "workout_type"])["calories"].sum().reset_index()
+        chart2 = px.bar(group2, x="date", y="calories", color="workout_type",
+                        title="Daily Calories Burned", color_discrete_map=color_map)
+        chart2.update_layout(xaxis=dict(tickformat="%b %d", tickangle=45, rangeslider_visible=True))
+    elif view_mode == "Week":
+        df["week"] = df["date"] - pd.to_timedelta(df["date"].dt.weekday, unit='d')
+        group2 = df.groupby(["week", "workout_type"])["calories"].sum().reset_index()
+        chart2 = px.bar(group2, x="week", y="calories", color="workout_type",
+                        title="Weekly Calories Burned", color_discrete_map=color_map)
+    else:
+        df["month"] = df["date"].dt.to_period("M").dt.to_timestamp()
+        group2 = df.groupby(["month", "workout_type"])["calories"].sum().reset_index()
+        chart2 = px.bar(group2, x="month", y="calories", color="workout_type",
+                        title="Monthly Calories Burned", color_discrete_map=color_map)
+
+    st.plotly_chart(chart2, use_container_width=True)
 else:
     st.info("Upload a workout CSV file to get started.")
