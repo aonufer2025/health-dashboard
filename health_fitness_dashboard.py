@@ -10,7 +10,9 @@ uploaded_file = st.file_uploader("Upload your formatted workout CSV", type=["csv
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file, parse_dates=["start", "end"], dayfirst=False)
-    df["date"] = pd.to_datetime(df["date"], errors="coerce")  # Explicit fix
+
+    # ✅ Explicit fix to ensure date filter works
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
     df["workout_type"] = df["workout_type"].str.title().str.strip()
 
