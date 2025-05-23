@@ -11,9 +11,9 @@ uploaded_file = st.file_uploader("Upload your formatted workout CSV", type=["csv
 if uploaded_file:
     df = pd.read_csv(uploaded_file, parse_dates=["start", "end"], dayfirst=False)
 
-    # ✅ Parse 'date' column and remove invalid rows
+    # ✅ Fix: parse and filter valid date values
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
-    df = df[df["date"].notna()]  # Drop rows with invalid or missing dates
+    df = df[df["date"].notna()]
 
     df["workout_type"] = df["workout_type"].str.title().str.strip()
 
@@ -22,7 +22,10 @@ if uploaded_file:
     view_mode = st.sidebar.radio("Aggregate By", ["Day", "Week", "Month"])
 
     if len(date_range) == 2:
-        df = df[(df["date"] >= date_range[0]) & (df["date"] <= date_range[1])]
+        df = df[
+            (df["date"] >= pd.to_datetime(date_range[0])) &
+            (df["date"] <= pd.to_datetime(date_range[1]))
+        ]
 
     st.subheader("Workout Volume by Type")
     if view_mode == "Day":
