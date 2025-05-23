@@ -3,17 +3,15 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Page setup
 st.set_page_config(page_title="Health & Fitness Dashboard", layout="wide")
-
 st.title("🏋️ Health & Fitness Dashboard (2025)")
 
-# Upload data
 uploaded_file = st.file_uploader("Upload your formatted workout CSV", type=["csv"])
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file, parse_dates=["start", "end"], dayfirst=False)
-    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")  # Explicit fix
+
     df["workout_type"] = df["workout_type"].str.title().str.strip()
 
     st.sidebar.header("Filters")
@@ -23,7 +21,6 @@ if uploaded_file:
     if len(date_range) == 2:
         df = df[(df["date"] >= date_range[0]) & (df["date"] <= date_range[1])]
 
-    # Chart 1: Workout Count by Type
     st.subheader("Workout Volume by Type")
     if view_mode == "Day":
         group = df.groupby(["date", "workout_type"]).size().reset_index(name="count")
