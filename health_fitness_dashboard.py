@@ -37,17 +37,19 @@ if uploaded_file:
         group = df.groupby(["date", "workout_type"]).size().reset_index(name="count")
         chart1 = px.bar(group, x="date", y="count", color="workout_type",
                         title="Daily Workout Volume", color_discrete_map=color_map)
-        chart1.update_layout(xaxis=dict(tickformat="%b %d", tickangle=45, rangeslider_visible=True))
+        chart1.update_layout(barmode="stack", xaxis=dict(tickformat="%b %d", tickangle=45, rangeslider_visible=True))
     elif view_mode == "Week":
         df["week"] = df["date"] - pd.to_timedelta(df["date"].dt.weekday, unit='d')
         group = df.groupby(["week", "workout_type"]).size().reset_index(name="count")
         chart1 = px.bar(group, x="week", y="count", color="workout_type",
                         title="Weekly Workout Volume", color_discrete_map=color_map)
+        chart1.update_layout(barmode="stack")
     else:
         df["month"] = df["date"].dt.to_period("M").dt.to_timestamp()
         group = df.groupby(["month", "workout_type"]).size().reset_index(name="count")
         chart1 = px.bar(group, x="month", y="count", color="workout_type",
                         title="Monthly Workout Volume", color_discrete_map=color_map)
+        chart1.update_layout(barmode="stack")
 
     st.plotly_chart(chart1, use_container_width=True)
 
@@ -57,17 +59,17 @@ if uploaded_file:
         group2 = df.groupby(["date", "workout_type"])["calories"].sum().reset_index()
         chart2 = px.bar(group2, x="date", y="calories", color="workout_type",
                         title="Daily Calories Burned", color_discrete_map=color_map)
-        chart2.update_layout(xaxis=dict(tickformat="%b %d", tickangle=45, rangeslider_visible=True))
+        chart2.update_layout(barmode="stack", xaxis=dict(tickformat="%b %d", tickangle=45, rangeslider_visible=True))
     elif view_mode == "Week":
-        df["week"] = df["date"] - pd.to_timedelta(df["date"].dt.weekday, unit='d')
         group2 = df.groupby(["week", "workout_type"])["calories"].sum().reset_index()
         chart2 = px.bar(group2, x="week", y="calories", color="workout_type",
                         title="Weekly Calories Burned", color_discrete_map=color_map)
+        chart2.update_layout(barmode="stack")
     else:
-        df["month"] = df["date"].dt.to_period("M").dt.to_timestamp()
         group2 = df.groupby(["month", "workout_type"])["calories"].sum().reset_index()
         chart2 = px.bar(group2, x="month", y="calories", color="workout_type",
                         title="Monthly Calories Burned", color_discrete_map=color_map)
+        chart2.update_layout(barmode="stack")
 
     st.plotly_chart(chart2, use_container_width=True)
 else:
